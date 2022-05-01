@@ -1,3 +1,4 @@
+
 import PySimpleGUI as sg
 import json
 from employee import Employee
@@ -13,7 +14,8 @@ def load_json():
             if json_object == None:
                 json_object = []
     except:
-        open('employees.json', 'w+')
+        f = open('employees.json', 'w+')
+        f.close()
         json_object = []
     return json_object
 
@@ -26,7 +28,7 @@ def update(window, employee_list):
             i = emp["id"]
             t = emp["title"]
             h = emp["hire_date"]
-            msg.append(f'Name: {n}, ID: {i}, Title: {t}, Hire Date: {h}')
+            msg.append(f'Name: {n} | ID Number: {i} | Job Title: {t} | Hire Date: {h}')
 
         window['-DIS-'].update(msg)
 
@@ -119,7 +121,12 @@ def main():
                 if employee is not None:
                     employee_list.append(employee)
                     with open('employees.json', 'w') as outfile:
-                        json.dump(employee_list, outfile, indent=4)  
+                        json.dump(employee_list, outfile, indent=4)
+
+                window['-NAME-'].update('')
+                window['-ID-'].update('')
+                window['-TITLE-'].update('')
+                window['-DATE-'].update('')  
 
         if event in ('Sort Employees',) and len(employee_list) > 0:                
             sort(values, employee_list)
@@ -134,3 +141,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
