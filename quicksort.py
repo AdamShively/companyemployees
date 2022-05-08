@@ -1,6 +1,6 @@
 """
 This version of the quicksort algorithm sorts
-employee objects by its data fields.
+employee objects by their data fields.
 """
 
 class Quicksort:
