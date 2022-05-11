@@ -1,4 +1,3 @@
-
 import PySimpleGUI as sg
 import json
 from employee import Employee
@@ -30,7 +29,7 @@ def update(window, employee_list):
             h = emp["hire_date"]
             msg.append(f'Name: {n} | ID Number: {i} | Job Title: {t} | Hire Date: {h}')
 
-        window['-DIS-'].update(msg)
+        window['-DIS-'].update(msg, set_to_index=[0])
 
 #Employees are sorted by their data fields.
 def sort(values, employee_list):
@@ -86,7 +85,7 @@ def main():
             [sg.Button('Sort Employees')],
             [sg.Text('_____'  * 30, size=(124, 1))],
             [sg.Listbox('', size=(200, 10), key='-DIS-')],
-            [sg.Button('Update List'), sg.Button('Exit')]
+            [sg.Button('Delete Selected'), sg.Button('Exit')]
             ]
 
     window = sg.Window('Company Employees',
@@ -94,19 +93,31 @@ def main():
                 size=(600, 650), finalize=True)
 
     employee_list = load_json()
+    update(window, employee_list)
 
     while True:
         event, values = window.read()
 
-        if event in (sg.WIN_CLOSED, 'Exit'):                   #Exit window
+        if event in (sg.WIN_CLOSED, 'Exit'):
             break
 
         if event in ('Add Employee',):
+
+            id = values['-ID-']
+            invalid_id = False
+            for emp in employee_list:
+                if emp["id"] == id:
+                    invalid_id = True
+                    break
+
             name = values['-NAME-']
             date = values['-DATE-']
             valid_input = check_format(name, date)
+
+            if invalid_id:
+                sg.popup_error('ERROR', 'Employee ID must be unique.')
             
-            if not valid_input[0] and not valid_input[1]:
+            elif not valid_input[0] and not valid_input[1]:
                 sg.popup_error('ERROR', 'Name and hire date do not conform to format.')
 
             elif not valid_input[0]:
@@ -116,7 +127,7 @@ def main():
                 sg.popup_error('ERROR', 'Hire date does not conform to format.')
 
             else:
-                employee = Employee(name, values['-ID-'], values['-TITLE-'], date)
+                employee = Employee(name, id, values['-TITLE-'], date)
                 employee = employee.create()
                 if employee is not None:
                     employee_list.append(employee)
@@ -126,19 +137,38 @@ def main():
                 window['-NAME-'].update('')
                 window['-ID-'].update('')
                 window['-TITLE-'].update('')
-                window['-DATE-'].update('')  
+                window['-DATE-'].update('')
+
+                update(window, employee_list)
 
         if event in ('Sort Employees',) and len(employee_list) > 0:                
             sort(values, employee_list)
-
-        if event in ('Update List',) and len(employee_list) > 0:                
             update(window, employee_list)
+            
+            with open('employees.json', 'w') as outfile:
+                json.dump(employee_list, outfile, indent=4)
 
-    with open('employees.json', 'w') as outfile:
-        json.dump(employee_list, outfile, indent=4)
+        if event in ('Delete Selected',) and len(employee_list) > 0:
+
+            emp = values['-DIS-'][0]
+            start_index = emp.find('ID Number: ')+11
+            end_index = emp.find(' ', start_index)
+            id_num = emp[start_index:end_index]
+
+            for emp in employee_list:
+
+                if emp["id"] == id_num:
+                    employee_list.remove(emp)
+
+                    if employee_list:
+                        update(window, employee_list)
+                    else:
+                        window['-DIS-'].update(employee_list)
+
+                    with open('employees.json', 'w') as outfile:
+                        json.dump(employee_list, outfile, indent=4)
 
     window.close()    
 
 if __name__ == "__main__":
     main()
-
