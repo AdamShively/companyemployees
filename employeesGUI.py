@@ -3,6 +3,7 @@ import json
 from employee import Employee
 from quicksort import Quicksort as qs
 import re
+import sys
 
 #Load contents of json file into employee_list.
 #If file doesn't exist, create it.
@@ -10,12 +11,16 @@ def load_json():
     try:
         with open('employees.json', 'r') as openfile:
             json_object = json.load(openfile)
-            if json_object == None:
-                json_object = []
-    except:
-        f = open('employees.json', 'w+')
-        f.close()
+
+    except FileNotFoundError:
+        with open('employees.json', 'w') as outfile:
+            json.dump([], outfile)
         json_object = []
+
+    except Exception as e:
+        sg.popup_error('ERROR', f'[{e}]', keep_on_top=True)
+        sys.exit()
+
     return json_object
 
 #Update what is displayed in the window's Listbox.
@@ -98,7 +103,7 @@ def main():
     while True:
         event, values = window.read()
 
-        if event in (sg.WIN_CLOSED, 'Exit'):
+        if event in (sg.WIN_CLOSED, 'Exit'):                   #Exit window
             break
 
         if event in ('Add Employee',):
